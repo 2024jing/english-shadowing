@@ -122,6 +122,12 @@ main{padding:0 max(5vw,16px) 48px;margin-top:-70px}
 </div></main>
 
 <script>
+// 從 LINE 內建瀏覽器開啟時，自動改用手機預設瀏覽器（LINE 會擋聲音與麥克風）
+(function(){
+  if(/\bLine\//i.test(navigator.userAgent)&&!/openExternalBrowser=1/.test(location.search)){
+    const u=new URL(location.href);u.searchParams.set("openExternalBrowser","1");location.replace(u.toString());
+  }
+})();
 {
 const SETS={
  "日常會話":[
