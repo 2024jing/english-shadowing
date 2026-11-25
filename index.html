@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>英文跟讀練習</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: 溫暖、鼓勵的語言教室，清楚不雜亂
+IDEA: 語言教室的跟讀卡——一張大卡片，上面是句子，下面是你的回放與批改
+PICTURE: 句子卡本身就是主角，逐字上色（對=綠底、錯=珊瑚、漏=虛線）
+COLOUR and TYPE: 鈷藍底帶 + 白卡 + 珊瑚強調；Outfit 英文 + Noto Sans TC 中文
+LAYOUT: 頂部分類與進度，中間大卡，下方控制鍵；手機直排
+*/
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0e1330);--band:light-dark(#2343d6,#1a2a8a);--card:light-dark(#ffffff,#161d45);
+--ink:light-dark(#121633,#eef1ff);--mute:light-dark(#5a6082,#a9b0d6);--line:light-dark(#dfe3f2,#2c356b);
+--ok:light-dark(#d9f5e3,#1d4a33);--okI:light-dark(#0f6b3a,#7fe0a8);--bad:light-dark(#ffe1d9,#5a2418);--badI:light-dark(#b8361a,#ffad98);
+--acc:#ff6b4a;--chip:light-dark(#eef1ff,#222b5e)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Outfit","Noto Sans TC",system-ui,sans-serif;overflow-x:clip}
+.band{background:var(--band);color:#fff;padding:clamp(22px,3vw,40px) max(5vw,16px) 90px}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.05;margin:0 0 6px;font-weight:800;text-wrap:balance}
+.sub{margin:0;opacity:.85;font-size:16px}
+.cats{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.cats button{border:1.5px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:99px;padding:8px 16px;min-height:44px;font:inherit;cursor:pointer}
+.cats button[aria-pressed=true]{background:#fff;color:#1a2a8a;border-color:#fff;font-weight:600}
+main{padding:0 max(5vw,16px) 48px;margin-top:-70px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,3.5vw,40px);box-shadow:0 18px 40px -20px rgba(10,20,80,.45)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--mute);font-size:14px;flex-wrap:wrap}
+.dots{display:flex;gap:5px;flex-wrap:wrap}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line);display:block}
+.dots i.done{background:var(--okI)}.dots i.cur{outline:2px solid var(--acc);outline-offset:2px}
+.sent{font-size:clamp(24px,3.6vw,36px);line-height:1.35;font-weight:600;margin:22px 0 6px;display:flex;flex-wrap:wrap;gap:4px 10px}
+.w{border-radius:8px;padding:0 4px;cursor:pointer;border:0;background:none;font:inherit;color:inherit}
+.w:hover,.w:focus-visible{background:var(--chip);outline:none}
+.w.ok{background:var(--ok);color:var(--okI)}.w.bad{background:var(--bad);color:var(--badI)}
+.w.miss{color:var(--badI);text-decoration:underline dashed 2px;text-underline-offset:6px}
+.w small{display:block;font-size:13px;font-weight:400;line-height:1.2}
+.zh{color:var(--mute);margin:0 0 22px;font-size:17px}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.btn svg{width:20px;height:20px;flex:none}
+.btn:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn.main{background:var(--acc);border-color:var(--acc);color:#fff;font-size:17px;padding:0 24px;min-height:56px}
+.btn.rec{background:#c8241a;border-color:#c8241a;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,107,74,.25)}}
+@media(prefers-reduced-motion:reduce){.btn.rec{animation:none}}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.spacer{flex:1}
+.heard{margin-top:22px;padding:16px 18px;border-radius:14px;background:var(--chip);min-height:56px}
+.heard b{display:block;font-size:13px;color:var(--mute);font-weight:500;margin-bottom:2px}
+.live{font-size:18px}
+.res{margin-top:18px;display:none}.res.on{display:block}
+.score{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.score strong{font-size:clamp(40px,7vw,56px);line-height:1;font-weight:800}
+.score span{font-size:17px}
+.tips{margin:10px 0 0;padding-left:20px}.tips li{margin:4px 0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:14px}
+.legend em{font-style:normal;padding:0 6px;border-radius:6px}
+.type{margin-top:14px;display:none;gap:8px;flex-wrap:wrap}.type.on{display:flex}
+.type input{flex:1 1 260px;min-height:48px;font:inherit;font-size:16px;padding:0 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.note{font-size:14px;color:var(--mute);margin:12px 0 0}
+.custom{margin-top:26px;border-top:1px solid var(--line);padding-top:20px}
+.custom h2{font-size:20px;margin:0 0 8px}
+.custom textarea{width:100%;min-height:90px;font:inherit;font-size:16px;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink)}
+.rate{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mute)}
+.rate select{min-height:44px;font:inherit;font-size:16px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:0 8px}
+@media(max-width:600px){.btn.main{flex:1 1 100%;justify-content:center}.spacer{display:none}}
+</style>
+</head>
+<body>
+<header class="band"><div class="wrap">
+  <h1>英文跟讀練習</h1>
+  <p class="sub">先聽，再跟著唸，我幫你逐字比對、標出要再練的字。</p>
+  <div class="cats" id="cats"></div>
+</div></header>
+
+<main><div class="wrap">
+<section class="card" aria-live="polite">
+  <div class="top"><span id="pos"></span><div class="dots" id="dots"></div></div>
+  <div class="sent" id="sent"></div>
+  <p class="zh" id="zh"></p>
+
+  <div class="ctrl">
+    <button class="btn" id="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>播放</button>
+    <button class="btn" id="slow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>慢速</button>
+    <button class="btn main" id="mic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"/></svg><span id="micT">開始跟讀</span></button>
+    <span class="spacer"></span>
+    <button class="btn" id="prev" aria-label="上一句"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="btn" id="next">下一句<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+
+  <div class="type" id="type">
+    <input id="typed" placeholder="聽寫模式：輸入你聽到的句子，按 Enter 批改" autocomplete="off">
+    <button class="btn" id="check">批改</button>
+  </div>
+  <p class="note" id="note">點句子裡任何一個字，可以單獨聽那個字的發音。</p>
+
+  <div class="heard"><b>我聽到你說</b><div class="live" id="live">（按「開始跟讀」後唸出上面的句子，唸完再按一次「完成」）</div></div>
+
+  <div class="res" id="res">
+    <div class="score"><strong id="pct">0%</strong><span id="verdict"></span></div>
+    <ul class="tips" id="tips"></ul>
+    <div class="legend"><span><em style="background:var(--ok);color:var(--okI)">綠</em> 唸對</span><span><em style="background:var(--bad);color:var(--badI)">珊瑚</em> 唸成別的字</span><span><em style="color:var(--badI);text-decoration:underline dashed">虛線</em> 漏掉沒唸</span></div>
+  </div>
+
+  <div class="custom">
+    <h2>用自己的句子練</h2>
+    <textarea id="own" placeholder="貼上想練的英文，一行一句。例如課本、考古題或客戶信件裡的句子。"></textarea>
+    <div class="ctrl" style="margin-top:10px">
+      <button class="btn" id="useOwn">開始練這些句子</button>
+      <label class="rate">播放速度
+        <select id="rate"><option value="0.8">0.8 慢</option><option value="1" selected>1.0 正常</option><option value="1.15">1.15 快</option></select>
+      </label>
+    </div>
+  </div>
+</section>
+</div></main>
+
+<script>
+{
+const SETS={
+ "日常會話":[
+  ["Could you say that again, please?","可以請你再說一次嗎？"],
+  ["I usually take a walk after dinner.","我通常晚餐後散步。"],
+  ["What time does the store open on Sunday?","這家店星期天幾點開？"],
+  ["I'm sorry, I didn't catch your name.","抱歉，我沒聽清楚你的名字。"],
+  ["It looks like it's going to rain this afternoon.","看起來今天下午會下雨。"],
+  ["Let me know if you need any help.","需要幫忙的話跟我說。"],
+  ["I've been learning English for two months.","我學英文兩個月了。"],
+  ["Thank you so much for your patience.","非常感謝你的耐心。"]],
+ "職場與食品業":[
+  ["We are a food manufacturer based in Taiwan.","我們是一家台灣的食品製造商。"],
+  ["We offer both OEM and ODM services.","我們提供代工與設計代工服務。"],
+  ["Could you send me a sample by next week?","可以下週前寄樣品給我嗎？"],
+  ["The minimum order quantity is five hundred units.","最低訂購量是五百件。"],
+  ["Our products have a shelf life of twelve months.","我們的產品保存期限是十二個月。"],
+  ["All ingredients are listed on the label.","所有成分都標示在標籤上。"],
+  ["I will follow up with you by email tomorrow.","我明天會用電子郵件跟你追蹤。"],
+  ["Thank you for visiting our booth today.","謝謝您今天來我們的攤位。"]],
+ "營養學":[
+  ["Protein is made up of amino acids.","蛋白質由胺基酸組成。"],
+  ["Dietary fiber helps maintain healthy digestion.","膳食纖維有助於維持消化健康。"],
+  ["Vitamin C improves the absorption of iron.","維生素C能提升鐵的吸收。"],
+  ["Patients with kidney disease should limit potassium.","腎臟病患者應限制鉀的攝取。"],
+  ["A balanced diet includes all six food groups.","均衡飲食包含六大類食物。"],
+  ["Carbohydrates are the main source of energy.","碳水化合物是主要的能量來源。"],
+  ["Calcium is essential for strong bones.","鈣對強健骨骼很重要。"],
+  ["The menu should be planned according to nutritional needs.","菜單應依照營養需求來規劃。"]]
+};
+const NUM={zero:"0",one:"1",two:"2",three:"3",four:"4",five:"5",six:"6",seven:"7",eight:"8",nine:"9",ten:"10",eleven:"11",twelve:"12",twenty:"20",hundred:"100"};
+const CON={"i'm":"i am","didn't":"did not","don't":"do not","it's":"it is","i've":"i have","let's":"let us","can't":"cannot","won't":"will not","isn't":"is not","we're":"we are","you're":"you are","that's":"that is","i'll":"i will","doesn't":"does not"};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let cat=Object.keys(SETS)[0],list=SETS[cat],idx=0,done={},rate=1,tts=null,dic=null,heard="",partial="",listening=false;
+try{done=JSON.parse(localStorage.getItem("shadow-done")||"{}")}catch(e){}
+const save=()=>{try{localStorage.setItem("shadow-done",JSON.stringify(done))}catch(e){}};
+
+const norm=t=>t.toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' -]/g," ").split(/\s+/).filter(Boolean)
+  .flatMap(w=>(CON[w]||w).split(" ")).map(w=>NUM[w]||w.replace(/^'+|'+$/g,"")).filter(Boolean);
+const disp=t=>t.split(/\s+/).filter(Boolean);
+
+function align(a,b){ // a target, b heard → ops per target word
+  const n=a.length,m=b.length,D=[...Array(n+1)].map(()=>Array(m+1).fill(0));
+  for(let i=0;i<=n;i++)D[i][0]=i;for(let j=0;j<=m;j++)D[0][j]=j;
+  for(let i=1;i<=n;i++)for(let j=1;j<=m;j++)D[i][j]=Math.min(D[i-1][j]+1,D[i][j-1]+1,D[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  const ops=Array(n),extra=[];let i=n,j=m;
+  while(i>0||j>0){
+    if(i>0&&j>0&&D[i][j]===D[i-1][j-1]+(a[i-1]===b[j-1]?0:1)){ops[i-1]=a[i-1]===b[j-1]?{t:"ok"}:{t:"bad",h:b[j-1]};i--;j--}
+    else if(i>0&&D[i][j]===D[i-1][j]+1){ops[i-1]={t:"miss"};i--}
+    else{extra.unshift(b[j-1]);j--}
+  }
+  return {ops,extra};
+}
+
+function renderCats(){
+  $("cats").innerHTML=[...Object.keys(SETS),...(SETS["我的句子"]?[]:[])].map(k=>`<button aria-pressed="${k===cat}" data-k="${esc(k)}">${esc(k)}</button>`).join("");
+}
+function render(ops){
+  const [en,zh]=list[idx];
+  const words=disp(en);
+  // map display words to normalized targets (1 display word may become 2 normalized)
+  let k=0;
+  $("sent").innerHTML=words.map((w,wi)=>{
+    const parts=norm(w);let cls="",tip="";
+    if(ops&&parts.length){const os=ops.slice(k,k+parts.length);k+=parts.length;
+      if(os.every(o=>o.t==="ok"))cls="ok";else if(os.some(o=>o.t==="bad")){cls="bad";tip=os.filter(o=>o.t==="bad").map(o=>o.h).join(" ")}else cls="miss";}
+    return `<button class="w ${cls}" data-i="${wi}">${esc(w)}${tip?`<small>你唸成 ${esc(tip)}</small>`:""}</button>`}).join("");
+  $("zh").textContent=zh;
+  $("pos").textContent=`${cat}・第 ${idx+1} / ${list.length} 句`;
+  $("dots").innerHTML=list.map((s,i)=>`<i class="${done[cat+"|"+s[0]]?"done":""} ${i===idx?"cur":""}"></i>`).join("");
+  $("prev").disabled=idx===0;
+}
+function reset(){heard="";partial="";$("live").textContent="（按「開始跟讀」後唸出上面的句子，唸完再按一次「完成」）";$("res").classList.remove("on");$("typed").value="";render()}
+
+async function speak(text,r){
+  r=r||rate;
+  if(tts){try{await tts.speak(text,{language:"en",rate:r});return}catch(e){if(e&&e.code==="busy")return}}
+  if("speechSynthesis" in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=r;
+    const vs=speechSynthesis.getVoices().filter(v=>/en[-_]US/i.test(v.lang));
+    const v=vs.find(v=>/Google|Samantha|Aria|Jenny|Natural/i.test(v.name))||vs[0];if(v)u.voice=v;speechSynthesis.speak(u)}
+}
+
+function grade(said){
+  const target=norm(list[idx][0]),got=norm(said);
+  if(!got.length){$("live").textContent="沒有聽到聲音，再試一次，靠近麥克風一點。";return}
+  const {ops,extra}=align(target,got);
+  const ok=ops.filter(o=>o.t==="ok").length,pct=Math.round(ok/target.length*100);
+  render(ops);
+  $("pct").textContent=pct+"%";
+  $("verdict").textContent=pct===100?"完美！每個字都唸對了。":pct>=80?"很接近了，修正標色的字再唸一次。":pct>=50?"不錯的開始，先慢速聽一次再試。":"先按「慢速」多聽兩遍，分段跟唸也可以。";
+  const tips=[];
+  const bad=ops.map((o,i)=>[o,target[i]]).filter(([o])=>o.t==="bad");
+  const miss=ops.map((o,i)=>[o,target[i]]).filter(([o])=>o.t==="miss");
+  if(bad.length)tips.push("唸得像別的字："+bad.map(([o,w])=>`<b>${esc(w)}</b>（聽起來像 ${esc(o.h)}）`).join("、")+"，點那個字聽正確發音。");
+  if(miss.length)tips.push("漏掉的字："+miss.map(([,w])=>`<b>${esc(w)}</b>`).join("、")+"，小字（a、the、of、to）也要唸清楚。");
+  if(extra.length)tips.push("多出來的字："+extra.map(esc).join("、"));
+  if(pct===100){done[cat+"|"+list[idx][0]]=1;save();render(ops)}
+  $("tips").innerHTML=tips.map(t=>`<li>${t}</li>`).join("");
+  $("res").classList.add("on");
+}
+
+function setMic(on){listening=on;$("mic").classList.toggle("rec",on);$("micT").textContent=on?"完成":"開始跟讀"}
+
+$("mic").addEventListener("click",()=>{
+  if(!dic){$("type").classList.add("on");$("typed").focus();return}
+  if(listening){setMic(false);dic.stop().catch(()=>{}).finally(()=>grade((heard+" "+partial).trim()));return}
+  heard="";partial="";$("res").classList.remove("on");render();
+  $("live").textContent="正在聽…請唸出句子";setMic(true);
+  dic.start().catch(e=>{setMic(false);const c=e&&(e.code||e.message||e);
+    $("live").textContent=c==="not_granted"?"麥克風權限被拒絕了。可以改用下方的聽寫模式練習。":"麥克風沒有啟動，請再按一次試試。";
+    if(c==="not_granted"){dic=null;$("type").classList.add("on")}});
+});
+$("play").addEventListener("click",()=>speak(list[idx][0]));
+$("slow").addEventListener("click",()=>speak(list[idx][0],0.7));
+$("sent").addEventListener("click",e=>{const b=e.target.closest(".w");if(b)speak(disp(list[idx][0])[+b.dataset.i].replace(/[^A-Za-z0-9']/g,""),0.85)});
+$("next").addEventListener("click",()=>{idx=(idx+1)%list.length;reset()});
+$("prev").addEventListener("click",()=>{if(idx>0){idx--;reset()}});
+$("cats").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;cat=b.dataset.k;list=SETS[cat];idx=0;renderCats();reset()});
+$("check").addEventListener("click",()=>{$("live").textContent=$("typed").value;grade($("typed").value)});
+$("typed").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();$("check").click()}});
+$("rate").addEventListener("change",e=>{rate=+e.target.value});
+$("useOwn").addEventListener("click",()=>{
+  const lines=$("own").value.split(/\n+/).map(s=>s.trim()).filter(s=>/[a-z]/i.test(s));
+  if(!lines.length){$("own").focus();return}
+  SETS["我的句子"]=lines.map(s=>[s,""]);cat="我的句子";list=SETS[cat];idx=0;renderCats();reset();
+  try{localStorage.setItem("shadow-own",$("own").value)}catch(e){}
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+try{const o=localStorage.getItem("shadow-own");if(o)$("own").value=o}catch(e){}
+document.addEventListener("keydown",e=>{if(e.target.matches("input,textarea,select"))return;
+  if(e.key==="ArrowRight")$("next").click();if(e.key==="ArrowLeft")$("prev").click();if(e.key===" "){e.preventDefault();$("mic").click()}});
+
+renderCats();render();
+// 瀏覽器內建語音辨識（Chrome / Edge / Safari）
+function makeDictation(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return null;
+  let rec=null,cb={p:()=>{},f:()=>{},s:()=>{}},stopRes=null;
+  return {
+    onPartial:f=>cb.p=f,onFinal:f=>cb.f=f,onState:f=>cb.s=f,
+    start(){
+      return new Promise((res,rej)=>{
+        rec=new SR();rec.lang="en-US";rec.interimResults=true;rec.continuous=true;rec.maxAlternatives=1;
+        rec.onstart=()=>{cb.s({state:"listening"});res()};
+        rec.onresult=e=>{let interim="";
+          for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];
+            if(r.isFinal)cb.f({text:r[0].transcript});else interim+=r[0].transcript}
+          cb.p({text:interim})};
+        rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed")rej({code:"not_granted"});else if(e.error!=="no-speech"&&e.error!=="aborted")rej({code:e.error})};
+        rec.onend=()=>{cb.s({state:"idle",reason:"stopped"});if(stopRes){stopRes();stopRes=null}};
+        try{rec.start()}catch(err){rej({code:"start_failed"})}
+      });
+    },
+    stop(){return new Promise(res=>{if(!rec)return res();stopRes=res;try{rec.stop()}catch(e){res()}setTimeout(res,1500)})}
+  };
+}
+dic=makeDictation();
+if(dic){
+  dic.onPartial(({text})=>{partial=text;$("live").textContent=(heard+" "+partial).trim()||"正在聽…"});
+  dic.onFinal(({text})=>{heard=(heard+" "+text).trim();partial="";$("live").textContent=heard});
+  dic.onState(({state})=>{if(state==="idle"&&listening){setMic(false);grade((heard+" "+partial).trim())}});
+}else{
+  $("type").classList.add("on");$("micT").textContent="聽寫模式";
+  $("note").textContent="這個瀏覽器不支援語音辨識（請用 Chrome、Edge 或 Safari）。現在可以先用聽寫模式：聽完輸入句子來批改。";
+}
+if("speechSynthesis" in window){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}
+}
+</script>
+</body>
+</html>
